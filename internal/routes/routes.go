@@ -1,0 +1,18 @@
+package routes
+
+import (
+	"github.com/AryanBhatDev/Workout-App/internal/app"
+	"github.com/go-chi/chi/v5"
+)
+
+func Setup(app *app.Application) *chi.Mux {
+	r := chi.NewRouter()
+
+	r.Get("/health", app.HealthCheck)
+
+	r.Get("/workouts/{id}", app.WorkoutHandler.HandleGetWorkoutByID)
+
+	r.Post("/workouts", app.WorkoutHandler.HandleCreateWorkout)
+
+	return r
+}
