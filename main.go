@@ -24,6 +24,8 @@ func main() {
 		panic(err)
 	}
 
+	defer application.DB.Close()
+
 	application.Logger.Info("App running")
 
 	r := routes.Setup(application)
