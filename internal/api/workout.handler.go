@@ -3,45 +3,42 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/AryanBhatDev/Workout-App/internal/store"
+	"github.com/AryanBhatDev/Workout-App/internal/utils"
 	"github.com/go-chi/chi/v5"
 )
 
 type WorkoutHandler struct {
 	workoutStore store.WorkoutStore
+	logger       *slog.Logger
 }
 
-func NewWorkoutHandler(workoutStore store.WorkoutStore) *WorkoutHandler {
+func NewWorkoutHandler(workoutStore store.WorkoutStore, logger *slog.Logger) *WorkoutHandler {
 	return &WorkoutHandler{
 		workoutStore: workoutStore,
+		logger:       logger,
 	}
 }
 
 func (wh *WorkoutHandler) HandleGetWorkoutByID(w http.ResponseWriter, r *http.Request) {
 
-	paramsWorkoutID := chi.URLParam(r, "id")
-
-	if paramsWorkoutID == "" {
-		http.NotFound(w, r)
-		return
-	}
-
-	workoutIDInt, err := strconv.ParseInt(paramsWorkoutID, 10, 64)
+	workoutIDInt, err := utils.ReadIDParam(r)
 
 	if err != nil {
-		fmt.Println("e:", err.Error())
-		http.NotFound(w, r)
+		wh.logger.Error(err.Error())
+		utils.WriteJSON(w, http.StatusBadRequest, utils.Envelope{"error": "invalid workoutid"})
 		return
 	}
 
 	workout, err := wh.workoutStore.GetWorkoutByID(workoutIDInt)
 
 	if err != nil {
-		fmt.Println("e: ", err)
-		http.Error(w, "error while retrieving workout", http.StatusNotFound)
+		wh.logger.Error(err.Error())
+		utils.WriteJSON(w, http.StatusBadRequest, utils.Envelope{"error": "invalid workoutid"})
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -57,16 +54,16 @@ func (wh *WorkoutHandler) HandleCreateWorkout(w http.ResponseWriter, r *http.Req
 	err := json.NewDecoder(r.Body).Decode(&workout)
 
 	if err != nil {
-		fmt.Println("err: ", err)
-		http.Error(w, "failed to create workout", http.StatusInternalServerError)
+		wh.logger.Error(err.Error())
+		utils.WriteJSON(w, http.StatusBadRequest, utils.Envelope{"error": "invalid workoutid"})
 		return
 	}
 
 	createdWorkout, err := wh.workoutStore.CreateWorkout(&workout)
 
 	if err != nil {
-		fmt.Println(err)
-		http.Error(w, "failed to create workout", http.StatusInternalServerError)
+		wh.logger.Error(err.Error())
+		utils.WriteJSON(w, http.StatusBadRequest, utils.Envelope{"error": "invalid workoutid"})
 		return
 	}
 
