@@ -137,7 +137,7 @@ func (wh *WorkoutHandler) HandleUpdateWorkout(w http.ResponseWriter, r *http.Req
 	err = wh.workoutStore.UpdateWorkout(existingWorkout)
 
 	if err != nil {
-		http.Error(w, "error while updating", http.StatusInternalServerError)
+		http.Error(w, "error while updating workout", http.StatusInternalServerError)
 		return
 	}
 
@@ -146,4 +146,45 @@ func (wh *WorkoutHandler) HandleUpdateWorkout(w http.ResponseWriter, r *http.Req
 	w.WriteHeader(http.StatusOK)
 
 	json.NewEncoder(w).Encode(existingWorkout)
+}
+
+func (wh *WorkoutHandler) HandleDeleteWorkoutByID(w http.ResponseWriter, r *http.Request) {
+	paramsWorkoutID := chi.URLParam(r, "id")
+
+	if paramsWorkoutID == "" {
+		http.NotFound(w, r)
+		return
+	}
+
+	workoutIDInt, err := strconv.ParseInt(paramsWorkoutID, 10, 64)
+
+	if err != nil {
+		fmt.Println("e:", err.Error())
+		http.NotFound(w, r)
+		return
+	}
+
+	existingWorkout, err := wh.workoutStore.GetWorkoutByID(workoutIDInt)
+
+	if err != nil {
+		http.Error(w, "failed to fetch workout", http.StatusInternalServerError)
+		return
+	}
+
+	if existingWorkout == nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	err = wh.workoutStore.DeleteWorkout(workoutIDInt)
+
+	if err != nil {
+		http.Error(w, "error while deleting workout", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	w.WriteHeader(http.StatusNoContent)
+
 }
