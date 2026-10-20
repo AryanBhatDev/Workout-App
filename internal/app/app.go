@@ -34,7 +34,9 @@ func NewApplication() (*Application, error) {
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	workoutHandler := api.NewWorkoutHandler()
+	workoutStore := store.NewPostgresWorkoutStore(pgDB)
+
+	workoutHandler := api.NewWorkoutHandler(workoutStore)
 
 	app := &Application{
 		Logger:         logger,
