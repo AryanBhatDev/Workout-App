@@ -16,6 +16,7 @@ type Application struct {
 	Logger         *slog.Logger
 	WorkoutHandler *api.WorkoutHandler
 	DB             *sql.DB
+	UserHandler    *api.UserHandler
 }
 
 func NewApplication() (*Application, error) {
@@ -35,13 +36,17 @@ func NewApplication() (*Application, error) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	workoutStore := store.NewPostgresWorkoutStore(pgDB)
+	userStore := store.NewPostgresUserStore(pgDB)
 
 	workoutHandler := api.NewWorkoutHandler(workoutStore, logger)
+
+	userHandler := api.NewUserHandler(userStore, logger)
 
 	app := &Application{
 		Logger:         logger,
 		WorkoutHandler: workoutHandler,
 		DB:             pgDB,
+		UserHandler:    userHandler,
 	}
 
 	return app, nil
